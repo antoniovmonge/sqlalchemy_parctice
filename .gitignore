@@ -1,0 +1,4 @@
+.envs/
+.python-version
+.env*
+.env
