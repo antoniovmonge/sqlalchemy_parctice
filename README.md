@@ -21,3 +21,38 @@ The products.csv file must be included in a folder called Data that is include i
 ```bash
 python import_products.py
 ```
+
+## Queries
+
+Run in terminal.
+
+```bash
+ipython
+```
+
+```bash
+from db import Session
+from models import Product
+
+session = Session()
+
+from sqlalchemy import select
+q = select(Product)
+```
+
+```bash
+print(q)
+```
+
+```bash
+r = session.execute(q)
+list(r)
+```
+
+```bash
+session.execute(q).all()
+```
+
+```bash
+session.scalars(q).all()
+```
