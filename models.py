@@ -14,9 +14,9 @@ class Product(Model):
     year: Mapped[int] = mapped_column(index=True)
     country: Mapped[Optional[str]] = mapped_column(String(32))
     cpu: Mapped[Optional[str]] = mapped_column(String(32))
-    # manufacturer_id: Mapped[int] = mapped_column(
-    #     ForeignKey("manufacturers.id"), index=True
-    # )
+    manufacturer_id: Mapped[int] = mapped_column(
+        ForeignKey("manufacturers.id"), index=True
+    )
     manufacturer: Mapped["Manufacturer"] = relationship(
         back_populates="products"
     )

@@ -1,6 +1,7 @@
 import csv
 from db import Model, Session, engine
-from models import Product
+from models import Product, Manufacturer
+
 
 def main():
     Model.metadata.drop_all(engine)  # warning: this deletes all data!
@@ -8,13 +9,22 @@ def main():
 
     with Session() as session:
         with session.begin():
-            with open('data/products.csv') as f:
+            with open("data/products.csv") as f:
                 reader = csv.DictReader(f)
+                all_manufacturers = {}
+
                 for row in reader:
-                    row['year'] = int(row['year'])
-                    product = Product(**row)
-                    session.add(product)
+                    row["year"] = int(row["year"])
+
+                    manufacturer = row.pop("manufacturer")
+                    p = Product(**row)
+
+                    if manufacturer not in all_manufacturers:
+                        m = Manufacturer(name=manufacturer)
+                        session.add(m)
+                        all_manufacturers[manufacturer] = m
+                    all_manufacturers[manufacturer].products.append(p)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
