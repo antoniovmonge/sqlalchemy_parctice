@@ -1,9 +1,16 @@
 from typing import Optional
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db import Model
+
+ProductCountry = Table(
+    "products_countries",
+    Model.metadata,
+    Column("product_id", ForeignKey("products.id"), primary_key=True, nullable=False),
+    Column("country_id", ForeignKey("countries.id"), primary_key=True, nullable=False),
+)
 
 
 class Product(Model):
@@ -11,18 +18,38 @@ class Product(Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
-    year: Mapped[int] = mapped_column(index=True)
-    country: Mapped[Optional[str]] = mapped_column(String(32))
-    cpu: Mapped[Optional[str]] = mapped_column(String(32))
     manufacturer_id: Mapped[int] = mapped_column(
         ForeignKey("manufacturers.id"), index=True
     )
+    year: Mapped[int] = mapped_column(index=True)
+    cpu: Mapped[Optional[str]] = mapped_column(String(32))
+    # country: Mapped[Optional[str]] = mapped_column(String(32))
+
+    # relationships
     manufacturer: Mapped["Manufacturer"] = relationship(
+        # lazy="joined",
         back_populates="products"
+    )
+    countries: Mapped[list["Country"]] = relationship(
+        secondary=ProductCountry, back_populates="products"
     )
 
     def __repr__(self):
         return f"Product({self.id}, '{self.name}')"
+
+
+class Country(Model):
+    __tablename__ = "countries"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(32), index=True, unique=True)
+
+    products: Mapped[list["Product"]] = relationship(
+        secondary=ProductCountry, back_populates="countries"
+    )
+
+    def __repr__(self):
+        return f"Country({self.id}, '{self.name}')"
 
 
 class Manufacturer(Model):
@@ -30,8 +57,10 @@ class Manufacturer(Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
+
+    # relationships
     products: Mapped[list["Product"]] = relationship(
-        back_populates="manufacturer"
+        cascade="all, delete-orphan", back_populates="manufacturer"
     )
 
     def __repr__(self):
