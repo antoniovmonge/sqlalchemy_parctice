@@ -166,3 +166,19 @@ Right click on the `public` schema and select `Properties...`
 3. In the "Privileges" column select `all`
 
 [SAVE]
+
+## Alembic
+
+```bash
+alembic init migrations
+```
+
+Configure necessary files.
+
+```bash
+alembic revision --autogenerate -m "products, manufacturers, countries"
+```
+
+```bash
+alembic upgrade head
+```
