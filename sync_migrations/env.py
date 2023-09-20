@@ -1,14 +1,12 @@
-import asyncio
 from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from alembic import context
 
 from db import Model, engine
 import models
-
-from sqlalchemy import pool
-from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,6 +19,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
+
 target_metadata = Model.metadata
 config.set_main_option(
     "sqlalchemy.url", engine.url.render_as_string(hide_password=False)
@@ -56,47 +55,33 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode.
 
-    with context.begin_transaction():
-        context.run_migrations()
-
-#######################
-# For SQLite database #
-#######################
-
-# def do_run_migrations(connection: Connection) -> None:
-#     context.configure(
-#         connection=connection, target_metadata=target_metadata, run_as_batch=True
-#     )
-
-#     with context.begin_transaction():
-#         context.run_migrations()
-
-
-async def run_async_migrations() -> None:
-    """In this scenario we need to create an Engine
+    In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-
-    connectable = async_engine_from_config(
+    connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        # CHOOSE ONE OF THE TWO OPTIONS
 
-    await connectable.dispose()
+        context.configure(connection=connection, target_metadata=target_metadata)
 
+        # This version is only needed with SQLite
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+        # context.configure(
+        #     connection=connection, target_metadata=target_metadata,
+        #     render_as_batch=True,
+        # )
 
-    asyncio.run(run_async_migrations())
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 if context.is_offline_mode():

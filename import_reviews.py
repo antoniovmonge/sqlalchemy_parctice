@@ -1,3 +1,4 @@
+import asyncio
 import csv
 from datetime import datetime
 from sqlalchemy import select, delete
@@ -5,21 +6,21 @@ from db import Session
 from models import Product, Customer, ProductReview
 
 
-def main():
-    with Session() as session:
-        with session.begin():
-            session.execute(delete(ProductReview))
+async def main():
+    async with Session() as session:
+        async with session.begin():
+            await session.execute(delete(ProductReview))
 
-    with Session() as session:
-        with session.begin():
+    async with Session() as session:
+        async with session.begin():
             with open("data/reviews.csv") as f:
                 reader = csv.DictReader(f)
 
                 for row in reader:
-                    c = session.scalar(
+                    c = await session.scalar(
                         select(Customer).where(Customer.name == row["customer"])
                     )
-                    p = session.scalar(
+                    p = await session.scalar(
                         select(Product).where(Product.name == row["product"])
                     )
                     r = ProductReview(
@@ -35,4 +36,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

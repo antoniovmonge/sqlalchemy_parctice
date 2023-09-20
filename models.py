@@ -28,10 +28,12 @@ class Product(Model):
 
     # relationships
     manufacturer: Mapped["Manufacturer"] = relationship(
-        # lazy="joined",
+        lazy="joined",      # <= async
+        innerjoin=True,     # <= async
         back_populates="products"
     )
     countries: Mapped[list["Country"]] = relationship(
+        lazy='selectin',    # <= async
         secondary=ProductCountry, back_populates="products"
     )
     order_items: WriteOnlyMapped["OrderItem"] = relationship(back_populates="product")
@@ -48,7 +50,9 @@ class Country(Model):
     name: Mapped[str] = mapped_column(String(32), index=True, unique=True)
 
     products: Mapped[list["Product"]] = relationship(
-        secondary=ProductCountry, back_populates="countries"
+        lazy='selectin',    # <= async
+        secondary=ProductCountry,
+        back_populates="countries"
     )
 
     def __repr__(self):
@@ -63,7 +67,9 @@ class Manufacturer(Model):
 
     # relationships
     products: Mapped[list["Product"]] = relationship(
-        cascade="all, delete-orphan", back_populates="manufacturer"
+        lazy='selectin',    # <= async
+        cascade="all, delete-orphan",
+        back_populates="manufacturer"
     )
 
     def __repr__(self):
@@ -109,7 +115,10 @@ class OrderItem(Model):
     unit_price: Mapped[float]
     quantity: Mapped[int]
 
-    product: Mapped["Product"] = relationship(back_populates="order_items")
+    product: Mapped["Product"] = relationship(
+        lazy="joined",      # <= async
+        innerjoin=True,     # <= async
+        back_populates="order_items")
     order: Mapped["Order"] = relationship(back_populates="order_items")
 
 
@@ -124,5 +133,13 @@ class ProductReview(Model):
     rating: Mapped[int]
     comment: Mapped[Optional[str]] = mapped_column(Text)
 
-    product: Mapped["Product"] = relationship(back_populates="reviews")
-    customer: Mapped["Customer"] = relationship(back_populates="product_reviews")
+    product: Mapped["Product"] = relationship(
+        lazy='joined',
+        innerjoin=True,
+        back_populates="reviews"
+    )
+    customer: Mapped["Customer"] = relationship(
+        lazy='joined',
+        innerjoin=True,
+        back_populates="product_reviews"
+    )
