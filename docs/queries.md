@@ -76,3 +76,27 @@ q = select(Product).where(Product.year.between(1970, 1979))
 q = select(Product).where(Product.id == 23)
 session.scalar(q)
 ```
+
+## Reviews
+
+```bash
+from sqlalchemy import select, func
+from db import Session
+from models import Product, Customer, ProductReview
+session = Session()
+```
+
+Calculate the average of all customer star ratings:
+
+```bash
+q = select(func.avg(ProductReview.rating))
+session.scalar(q)
+```
+
+Calculate the average rating for a product:
+
+```bash
+p = session.scalar(select(Product).where(Product.name == 'ZX Spectrum'))
+q = (select(func.avg(ProductReview.rating)).where(ProductReview.product == p))
+session.scalar(q)
+```
